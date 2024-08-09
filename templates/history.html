@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Transaction History of <span>{{user.username}}</span></h1>
+        <h3>Outbound transactions</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Amount $</th>
+                    <th>Timestamp</th>
+                    <th>Sender</th>
+                    <th>Recipient</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in out_transactions %}
+                <tr>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.timestamp }}</td>
+                    <td class="sender" id_sender="{{ transaction.sender_id }}"></td>
+                    <td class="recipient" id_recipient="{{ transaction.recipient_id }}"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h3>Inbound transactions</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Amount $</th>
+                    <th>Timestamp</th>
+                    <th>Sender</th>
+                    <th>Recipient</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in in_transactions %}
+                <tr>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.timestamp }}</td>
+                    <td class="sender" id_sender="{{ transaction.sender_id }}"></td>
+                    <td class="recipient" id_recipient="{{ transaction.recipient_id }}"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </div>
+    <script>
+
+        const currentUsername = "{{ user.username }}";
+
+        async function getUsername(params) {
+            try {
+                const res = await fetch(`/user/${params}`);
+                const data = await res.json();
+                return data.username
+            } catch (e) {
+                console.error('Error while fetching user data:', e);
+            }
+        }
+        async function populateFields() {
+            const senderElements = document.querySelectorAll('.sender');
+            const recipientElements = document.querySelectorAll('.recipient');
+
+            for (const el of senderElements) {
+                const sender_id = el.getAttribute('id_sender');
+                const sender = await getUsername(sender_id);
+                el.textContent = sender;
+                if (currentUsername === sender) {
+                    el.classList.add('current-user')
+                }
+            }
+
+            for (const el of recipientElements) {
+                const recipient_id = el.getAttribute('id_recipient');
+                const recipient = await getUsername(recipient_id);
+                el.textContent = recipient;
+                if (currentUsername === recipient) {
+                    el.classList.add('current-user')
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', populateFields);
+    </script>
+</body>
+
+</html>
